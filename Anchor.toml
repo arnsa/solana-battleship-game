@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-solana_battleship_game = "FWADG4FNxH7Sx8DyZ4VXuZtHfBPuekWBewoyWKuUPNsz"
+solana_battleship_game = "2wgGg9s2kpGTk8du1ccZ9E1v5PW3TUz7aSQyeX4drqNE"
 
 [registry]
 url = "https://api.apr.dev"

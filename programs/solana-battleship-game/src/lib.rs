@@ -1,27 +1,36 @@
-mod error;
-mod utils;
-mod state;
 mod constants;
+mod error;
+mod state;
+mod utils;
 
 use anchor_lang::prelude::*;
 
 use constants::GAME_ACCOUNT_SEED;
 use state::GameState;
-use state::ShipDirection;
+use state::ShipCoordinate;
 
-declare_id!("FWADG4FNxH7Sx8DyZ4VXuZtHfBPuekWBewoyWKuUPNsz");
+declare_id!("2wgGg9s2kpGTk8du1ccZ9E1v5PW3TUz7aSQyeX4drqNE");
 
 #[program]
 pub mod solana_battleship_game {
     use super::*;
 
-    pub fn initialize(ctx: Context<CreateGameAccount>, ships_coordinates: Vec<(u8, u8, ShipDirection)>) -> Result<()> {
-        msg!("Greetings from: {:?}", ctx.program_id);
-
+    pub fn initialize(
+        ctx: Context<CreateGameAccount>,
+        ships_coordinates: Vec<ShipCoordinate>,
+    ) -> Result<()> {
         let game = GameState::initialize_game(&ships_coordinates)?;
 
-        msg!("{:?}", game.game_boards.0);
+        ctx.accounts.game_account.game_boards = game.game_boards;
+        ctx.accounts.game_account.status = game.status;
+        ctx.accounts.game_account.current_turn = game.current_turn;
+        ctx.accounts.game_account.rounds_played = game.rounds_played;
 
+        Ok(())
+    }
+
+    pub fn close_game(_ctx: Context<CloseGameAccount>) -> Result<()> {
+        msg!("Closing game account");
         Ok(())
     }
 }
@@ -31,7 +40,15 @@ pub struct CreateGameAccount<'info> {
     #[account(
         init,
         payer = player,
-        space = 8 + 32 + 32 + 8,
+        // TODO: calculate correct space
+        space = 10240,
+        // space = 100000 + 8 + // discriminator
+        //     32 + // player pubkey
+        //     32 + // system program
+        //     1 + // game status
+        //     1 + // current turn
+        //     1 + // rounds played
+        //     ((1 + (10 * 10)) * 2),
         seeds = [GAME_ACCOUNT_SEED, player.key().as_ref()],
         bump
     )]
@@ -41,4 +58,16 @@ pub struct CreateGameAccount<'info> {
     pub player: Signer<'info>,
 
     pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CloseGameAccount<'info> {
+    #[account(
+        mut,
+        close = payer,
+    )]
+    pub game_account: Account<'info, GameState>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
 }

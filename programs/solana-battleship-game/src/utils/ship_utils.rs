@@ -20,27 +20,27 @@ pub fn get_ship_coordinates(
         match direction {
             ShipDirection::Down => {
                 let x = start_point.0;
-                let y = start_point.1 + i;
+                let y = start_point.1.checked_add(i).ok_or(BattleshipError::CoordinatesNotOnBoardError)?;
 
                 check_new_coordinates((x, y))?;
                 result.push((x, y))
             }
             ShipDirection::Up => {
                 let x = start_point.0;
-                let y = start_point.1 - i;
+                let y = start_point.1.checked_sub(i).ok_or(BattleshipError::CoordinatesNotOnBoardError)?;
 
                 check_new_coordinates((x, y))?;
                 result.push((x, y))
             }
             ShipDirection::Left => {
-                let x = start_point.0 - i;
+                let x = start_point.0.checked_sub(i).ok_or(BattleshipError::CoordinatesNotOnBoardError)?;
                 let y = start_point.1;
 
                 check_new_coordinates((x, y))?;
                 result.push((x, y))
             }
             ShipDirection::Right => {
-                let x = start_point.0 + i;
+                let x = start_point.0.checked_add(i).ok_or(BattleshipError::CoordinatesNotOnBoardError)?;
                 let y = start_point.1;
 
                 check_new_coordinates((x, y))?;
