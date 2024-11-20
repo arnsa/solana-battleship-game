@@ -1,12 +1,9 @@
-use std::io::{self, Write};
-
-use rand::Rng;
 use anchor_lang::prelude::*;
 use anchor_lang::{AnchorDeserialize, AnchorSerialize};
-use anyhow::{anyhow, Result};
 
 use super::ShipDirection;
 use crate::constants::SHIPS;
+use crate::error::BattleshipError;
 use crate::utils::get_ship_coordinates;
 
 #[derive(Debug, Clone, AnchorDeserialize, AnchorSerialize)]
@@ -26,32 +23,23 @@ impl GameBoard {
         }
     }
 
-    pub fn initiate_board_with_ships_from_input(&mut self) {
-        for ship_size in SHIPS {
-            loop {
-                let mut input = String::new();
-
-                print!("Place ship (size: {}): ", ship_size);
-                io::stdout().flush().expect("Failed to flush stdout");
-                io::stdin().read_line(&mut input).expect("Failed to read input");
-
-                if let Ok((col, row, direction)) = GameBoard::parse_user_input(&input) {
-                    if self.place_ship((col, row), ship_size, &direction).is_ok() {
-                        break;
-                    }
-                }
-            }
+    pub fn initiate_board_with_ships_from_input(
+        &mut self,
+        ships_coordinates: &Vec<(u8, u8, ShipDirection)>,
+    ) -> Result<()> {
+        for (&ship_size, &(col, row, direction)) in SHIPS.iter().zip(ships_coordinates.iter()) {
+            self.place_ship((col, row), ship_size, &direction)?;
         }
+
+        Ok(())
     }
 
     pub fn initiate_board_with_ships_at_random(&mut self) {
-        let mut rng = rand::thread_rng();
-
         for ship_size in SHIPS {
             loop {
-                let row = rng.gen_range(0..=9);
-                let col = rng.gen_range(0..=9);
-                let direction_num = rng.gen_range(0..4);
+                let row = (Clock::get().unwrap().unix_timestamp % 10) as u8;
+                let col = (Clock::get().unwrap().unix_timestamp % 10) as u8;
+                let direction_num = Clock::get().unwrap().unix_timestamp % 4;
                 let direction = match direction_num {
                     0 => ShipDirection::Up,
                     1 => ShipDirection::Right,
@@ -83,9 +71,7 @@ impl GameBoard {
             return Ok(());
         }
 
-        return Err(anyhow!(
-            "Can't place ship at those coordinates: ships are overlapping"
-        ));
+        return err!(BattleshipError::ShipPlacementError);
     }
 
     fn can_place_ship(&self, new_ship_coordinates: &Vec<(u8, u8)>) -> bool {
@@ -95,26 +81,24 @@ impl GameBoard {
     }
 
     fn parse_user_input(input: &str) -> Result<(u8, u8, ShipDirection)> {
-        const WRONG_FORMAT_ERROR_MESSAGE: &str = "Wrong input format. Input example: A5 D";
         let mut chars = input.chars();
-        let row = chars.next().ok_or(anyhow!(WRONG_FORMAT_ERROR_MESSAGE))?;
+        let row = chars.next().ok_or(BattleshipError::InputFormatError)?;
         let col = chars
             .by_ref()
             .take_while(|num| num.is_digit(10))
             .collect::<String>()
             .parse::<u8>()
-            .map_err(|_| anyhow!(WRONG_FORMAT_ERROR_MESSAGE))?;
-        let direction = match chars.next().ok_or(WRONG_FORMAT_ERROR_MESSAGE) {
+            .map_err(|_| BattleshipError::InputFormatError)?;
+        let direction = match chars.next().ok_or(BattleshipError::InputFormatError) {
             Ok('U') => ShipDirection::Up,
             Ok('R') => ShipDirection::Right,
             Ok('D') => ShipDirection::Down,
             Ok('L') => ShipDirection::Left,
-            Ok(_) => return Err(anyhow!(WRONG_FORMAT_ERROR_MESSAGE)),
-            Err(_) => return Err(anyhow!(WRONG_FORMAT_ERROR_MESSAGE)),
+            _ => return Err(BattleshipError::InputFormatError.into()),
         };
 
         if row < 'A' || row > 'J' || col < 1 || col > 10 {
-            return Err(anyhow!(WRONG_FORMAT_ERROR_MESSAGE));
+            return Err(BattleshipError::InputFormatError.into());
         };
 
         return Ok(((row as u8) - b'A', col - 1, direction));

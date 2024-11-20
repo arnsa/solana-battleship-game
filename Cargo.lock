@@ -1472,8 +1472,6 @@ name = "solana-battleship-game"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
- "anyhow",
- "rand 0.8.5",
 ]
 
 [[package]]

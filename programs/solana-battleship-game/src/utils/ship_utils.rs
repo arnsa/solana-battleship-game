@@ -1,10 +1,9 @@
-use anyhow::{anyhow, Result};
-
-use crate::state::ShipDirection;
+use anchor_lang::prelude::Result;
+use crate::{error::BattleshipError, state::ShipDirection};
 
 fn check_new_coordinates(coordinates: (u8, u8)) -> Result<()> {
     if coordinates.0 > 9 || coordinates.1 > 9 {
-        return Err(anyhow!("Provided coordinates are not on board"))
+        return Err(BattleshipError::CoordinatesNotOnBoardError.into())
     }
 
     Ok(())

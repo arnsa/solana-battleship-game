@@ -1,10 +1,13 @@
+mod error;
 mod utils;
 mod state;
 mod constants;
 
 use anchor_lang::prelude::*;
+
 use constants::GAME_ACCOUNT_SEED;
 use state::GameState;
+use state::ShipDirection;
 
 declare_id!("FWADG4FNxH7Sx8DyZ4VXuZtHfBPuekWBewoyWKuUPNsz");
 
@@ -12,8 +15,13 @@ declare_id!("FWADG4FNxH7Sx8DyZ4VXuZtHfBPuekWBewoyWKuUPNsz");
 pub mod solana_battleship_game {
     use super::*;
 
-    pub fn initialize(ctx: Context<CreateGameAccount>) -> Result<()> {
+    pub fn initialize(ctx: Context<CreateGameAccount>, ships_coordinates: Vec<(u8, u8, ShipDirection)>) -> Result<()> {
         msg!("Greetings from: {:?}", ctx.program_id);
+
+        let game = GameState::initialize_game(&ships_coordinates)?;
+
+        msg!("{:?}", game.game_boards.0);
+
         Ok(())
     }
 }

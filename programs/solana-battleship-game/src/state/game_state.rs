@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::{AnchorDeserialize, AnchorSerialize};
 
-use super::GameBoard;
+use super::{GameBoard, ShipDirection};
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
 pub enum GameStatus {
@@ -19,18 +19,18 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn initialize_game() -> Self {
+    pub fn initialize_game(ships_coordinates: &Vec<(u8, u8, ShipDirection)>) -> Result<Self> {
         let mut p1_game_board = GameBoard::initialize_game_board();
         let mut p2_game_board = GameBoard::initialize_game_board();
 
-        p1_game_board.initiate_board_with_ships_from_input();
+        p1_game_board.initiate_board_with_ships_from_input(ships_coordinates)?;
         p2_game_board.initiate_board_with_ships_at_random();
 
-        Self {
+        Ok(Self {
             game_boards: (p1_game_board, p2_game_board),
             status: GameStatus::InProgress,
             current_turn: 0,
             rounds_played: 0,
-        }
+        })
     }
 }
