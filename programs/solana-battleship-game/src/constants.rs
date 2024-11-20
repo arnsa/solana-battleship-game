@@ -1,0 +1,1 @@
+pub const GAME_ACCOUNT_SEED: &[u8] = b"battleship-game";

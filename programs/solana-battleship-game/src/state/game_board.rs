@@ -7,6 +7,12 @@ pub struct GameBoard {
     pub target_grid: [[TileState; 10]; 10],
 }
 
+impl GameBoard {
+    pub fn place_ship() {
+
+    }
+}
+
 #[derive(Debug, Clone, AnchorDeserialize, AnchorSerialize)]
 pub enum TileState {
     Empty,
