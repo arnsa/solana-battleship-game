@@ -10,17 +10,14 @@ declare_id!("FWADG4FNxH7Sx8DyZ4VXuZtHfBPuekWBewoyWKuUPNsz");
 pub mod solana_battleship_game {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+    pub fn initialize(ctx: Context<GameAccount>) -> Result<()> {
         msg!("Greetings from: {:?}", ctx.program_id);
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct Initialize {}
-
-#[derive(Accounts)]
-pub struct CreateGameAccount<'info> {
+pub struct GameAccount<'info> {
     #[account(
         init,
         payer = player,
