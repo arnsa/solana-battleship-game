@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 
+use rand::Rng;
 use anchor_lang::prelude::*;
 use anchor_lang::{AnchorDeserialize, AnchorSerialize};
 use anyhow::{anyhow, Result};
@@ -15,7 +16,7 @@ pub struct GameBoard {
 }
 
 impl GameBoard {
-    pub fn new() -> Self {
+    pub fn initialize_game_board() -> Self {
         let player_grid: [[TileState; 10]; 10] = [[TileState::Empty; 10]; 10];
         let target_grid: [[TileState; 10]; 10] = [[TileState::Empty; 10]; 10];
 
@@ -25,7 +26,7 @@ impl GameBoard {
         }
     }
 
-    pub fn initiate_board_with_ships_from_input(&mut self) -> Result<()> {
+    pub fn initiate_board_with_ships_from_input(&mut self) {
         for ship_size in SHIPS {
             loop {
                 let mut input = String::new();
@@ -34,16 +35,36 @@ impl GameBoard {
                 io::stdout().flush().expect("Failed to flush stdout");
                 io::stdin().read_line(&mut input).expect("Failed to read input");
 
-                let (col, row, direction) = GameBoard::parse_user_input(&input)?;
-
-                match self.place_ship((col, row), ship_size, &direction) {
-                    Ok(_) => break,
-                    Err(err) => println!("ERR: {}", err),
+                if let Ok((col, row, direction)) = GameBoard::parse_user_input(&input) {
+                    if self.place_ship((col, row), ship_size, &direction).is_ok() {
+                        break;
+                    }
                 }
             }
         }
+    }
 
-        Ok(())
+    pub fn initiate_board_with_ships_at_random(&mut self) {
+        let mut rng = rand::thread_rng();
+
+        for ship_size in SHIPS {
+            loop {
+                let row = rng.gen_range(0..=9);
+                let col = rng.gen_range(0..=9);
+                let direction_num = rng.gen_range(0..4);
+                let direction = match direction_num {
+                    0 => ShipDirection::Up,
+                    1 => ShipDirection::Right,
+                    2 => ShipDirection::Down,
+                    3 => ShipDirection::Left,
+                    _ => unreachable!(),
+                };
+
+                if self.place_ship((col, row), ship_size, &direction).is_ok() {
+                    break;
+                }
+            }
+        }
     }
 
     fn place_ship(
