@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_lang::{AnchorDeserialize, AnchorSerialize};
 
+use crate::CreateGameAccount;
+
 use super::{GameBoard, ShipCoordinate};
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
@@ -19,12 +21,15 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn initialize_game(ships_coordinates: &Vec<ShipCoordinate>) -> Result<Self> {
+    pub fn initialize_game(
+        ctx: &Context<CreateGameAccount>,
+        ships_coordinates: &Vec<ShipCoordinate>,
+    ) -> Result<Self> {
         let mut p1_game_board = GameBoard::initialize_game_board();
         let mut p2_game_board = GameBoard::initialize_game_board();
 
         p1_game_board.initiate_board_with_ships_from_input(ships_coordinates)?;
-        p2_game_board.initiate_board_with_ships_at_random();
+        p2_game_board.initiate_board_with_ships_at_random(ctx)?;
 
         Ok(Self {
             game_boards: (p1_game_board, p2_game_board),

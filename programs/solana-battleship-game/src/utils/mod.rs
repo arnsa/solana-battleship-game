@@ -1,3 +1,5 @@
-pub mod ship_utils;
+pub mod ship;
+pub mod numbers;
 
-pub use ship_utils::get_ship_coordinates;
+pub use ship::get_ship_coordinates;
+pub use numbers::get_random_number;

@@ -5,6 +5,7 @@ mod utils;
 
 use anchor_lang::prelude::*;
 
+use anchor_lang::solana_program::sysvar::recent_blockhashes::RecentBlockhashes;
 use constants::GAME_ACCOUNT_SEED;
 use state::GameState;
 use state::ShipCoordinate;
@@ -19,7 +20,7 @@ pub mod solana_battleship_game {
         ctx: Context<CreateGameAccount>,
         ships_coordinates: Vec<ShipCoordinate>,
     ) -> Result<()> {
-        let game = GameState::initialize_game(&ships_coordinates)?;
+        let game = GameState::initialize_game(&ctx, &ships_coordinates)?;
 
         ctx.accounts.game_account.game_boards = game.game_boards;
         ctx.accounts.game_account.status = game.status;
@@ -58,6 +59,8 @@ pub struct CreateGameAccount<'info> {
     pub player: Signer<'info>,
 
     pub system_program: Program<'info, System>,
+
+    pub recent_blockhashes: Sysvar<'info, RecentBlockhashes>,
 }
 
 #[derive(Accounts)]

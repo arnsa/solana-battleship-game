@@ -4,7 +4,8 @@ use anchor_lang::{AnchorDeserialize, AnchorSerialize};
 use super::{ShipCoordinate, ShipDirection};
 use crate::constants::SHIPS;
 use crate::error::BattleshipError;
-use crate::utils::get_ship_coordinates;
+use crate::utils::{get_random_number, get_ship_coordinates};
+use crate::CreateGameAccount;
 
 #[derive(Debug, Clone, AnchorDeserialize, AnchorSerialize)]
 pub struct GameBoard {
@@ -34,12 +35,13 @@ impl GameBoard {
         Ok(())
     }
 
-    pub fn initiate_board_with_ships_at_random(&mut self) {
+    pub fn initiate_board_with_ships_at_random(&mut self, ctx: &Context<CreateGameAccount>) -> Result<()> {
+        let mut counter = 0;
         for ship_size in SHIPS {
             loop {
-                let row = (Clock::get().unwrap().unix_timestamp % 10) as u8;
-                let col = (Clock::get().unwrap().unix_timestamp % 10) as u8;
-                let direction_num = Clock::get().unwrap().unix_timestamp % 4;
+                let row = (get_random_number(ctx, &mut counter)?) as u8;
+                let col = (get_random_number(ctx, &mut counter)?) as u8;
+                let direction_num = (get_random_number(ctx, &mut counter)?) as u8 % 4;
                 let direction = match direction_num {
                     0 => ShipDirection::Up,
                     1 => ShipDirection::Right,
@@ -53,6 +55,8 @@ impl GameBoard {
                 }
             }
         }
+
+        Ok(())
     }
 
     fn place_ship(
