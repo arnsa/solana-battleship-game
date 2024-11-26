@@ -41,15 +41,7 @@ pub struct CreateGameAccount<'info> {
     #[account(
         init,
         payer = player,
-        // TODO: calculate correct space
-        space = 10240,
-        // space = 100000 + 8 + // discriminator
-        //     32 + // player pubkey
-        //     32 + // system program
-        //     1 + // game status
-        //     1 + // current turn
-        //     1 + // rounds played
-        //     ((1 + (10 * 10)) * 2),
+        space = GameState::SPACE,
         seeds = [GAME_ACCOUNT_SEED, player.key().as_ref()],
         bump
     )]

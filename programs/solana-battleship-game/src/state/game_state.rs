@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::{AnchorDeserialize, AnchorSerialize};
 
-use crate::CreateGameAccount;
+use crate::{constants, CreateGameAccount};
 
 use super::{GameBoard, ShipCoordinate};
 
@@ -21,6 +21,20 @@ pub struct GameState {
 }
 
 impl GameState {
+    pub const GRID_SIZE_BYTES: usize = constants::VEC_PREFIX_SIZE +  // outer vec length
+        (constants::GRID_SIZE * (
+            constants::VEC_PREFIX_SIZE +  // inner vec length
+            (constants::GRID_SIZE * constants::ENUM_SIZE)  // tiles in each row
+        ));
+
+    pub const GAME_BOARD_SIZE: usize = Self::GRID_SIZE_BYTES * 2; // player_grid + target_grid
+
+    pub const SPACE: usize = constants::DISCRIMINATOR_LENGTH +
+        (Self::GAME_BOARD_SIZE * 2) +   // Two GameBoards in tuple
+        constants::ENUM_SIZE +          // GameStatus
+        constants::UINT8_SIZE +         // current_turn
+        constants::UINT8_SIZE; // rounds_played
+
     pub fn initialize_game(
         ctx: &Context<CreateGameAccount>,
         ships_coordinates: &Vec<ShipCoordinate>,
